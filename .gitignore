@@ -1,0 +1,15 @@
+# Local WeChat developer settings
+project.private.config.json
+
+# Development previews and backups
+backups/
+mockups/
+
+# Unused audio drafts kept outside the published source
+assets/audio/*preview*.wav
+assets/audio/tension-bgm.wav
+
+# Common local artifacts
+node_modules/
+.DS_Store
+Thumbs.db

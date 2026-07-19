@@ -1,0 +1,407 @@
+<view class="page">
+  <view wx:if="{{view === 'home'}}" class="screen home-screen">
+    <button class="mute-btn {{bgmMuted ? 'muted' : ''}}" bindtap="toggleBgmMute" aria-label="背景音乐开关">
+      <view class="speaker-icon"></view>
+    </button>
+
+    <button class="medal-home-entry" bindtap="openMedals">
+      <view class="entry-ribbon"></view>
+      <view class="entry-medal"><view class="entry-star"></view></view>
+      <view class="entry-text">
+        <text>我</text>
+        <text>的</text>
+        <text>勋</text>
+        <text>章</text>
+      </view>
+    </button>
+
+    <view class="brand-panel">
+      <view class="alarm-light"></view>
+      <view class="bomb-core">
+        <view class="fuse"></view>
+      </view>
+      <view class="kicker">CODE RED / 4位密码拆解</view>
+      <view class="title">拆弹专家</view>
+      <view class="countdown">10:00</view>
+      <view class="subtitle">
+        输入不重复的四位数字，用 A、B、C 锁定密码，解除危机。
+        <text class="manual-text-link" bindtap="openRules">拆弹手册</text>
+      </view>
+    </view>
+
+    <view class="menu">
+      <button class="primary-btn" bindtap="startSingle">开始挑战</button>
+      <button class="learn-btn" bindtap="openLearning">拆弹训练</button>
+      <button class="secondary-btn" bindtap="openDoubleSetup">队友切磋</button>
+      <button class="ghost-btn" bindtap="openHistory">战绩排行</button>
+    </view>
+  </view>
+
+  <view wx:elif="{{view === 'medals'}}" class="screen">
+    <view class="topbar">
+      <view>
+        <view class="kicker">荣誉墙</view>
+        <view class="section-title">我的勋章</view>
+      </view>
+      <button class="small-btn" bindtap="goHome">返回</button>
+    </view>
+
+    <view class="medal-wall">
+      <view wx:for="{{medalCards}}" wx:key="id" class="medal-card {{item.statusClass}}">
+        <view wx:if="{{item.countText}}" class="medal-count">{{item.countText}}</view>
+        <view class="medal-ribbon"></view>
+        <view class="medal-coin"><view class="medal-star"></view></view>
+        <view class="medal-name">{{item.name}}</view>
+        <view class="medal-desc">{{item.description}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{view === 'rules'}}" class="screen">
+    <view class="topbar">
+      <view>
+        <view class="kicker">说明</view>
+        <view class="section-title">任务手册</view>
+      </view>
+      <button class="small-btn" bindtap="goHome">返回</button>
+    </view>
+
+    <view class="rules-panel">
+      <view class="rule-block">
+        <view class="rule-title">1. 密码锁规则</view>
+        <view class="rule-text">每局答案是一个4位数字密码，开头可以是0，但4个数字不能重复。例如 0472 合法，1123 不合法。</view>
+      </view>
+
+      <view class="rule-block">
+        <view class="rule-title">2. 输入规则</view>
+        <view class="rule-text">玩家每次输入4位不重复数字。输入重复数字时会提示“数据不能重复，请重新输入”，并且这次不计入猜测次数。</view>
+      </view>
+
+      <view class="rule-block">
+        <view class="rule-title">3. A、B、C 的含义</view>
+        <view class="rule-text">A 表示数字正确且位置正确。B 表示数字正确但位置不正确。C 表示这个数字不在答案中。</view>
+      </view>
+
+      <view class="rule-example">
+        <view class="rule-title">例子</view>
+        <view class="rule-text">答案是 1234，输入 1325：1 的数字和位置都正确，得到 A；3 和 2 在答案中但位置不对，得到 BB；5 不在答案中，得到 C；所以结果显示 ABBC。</view>
+      </view>
+
+      <view class="rule-block">
+        <view class="rule-title">4. 拆弹目标</view>
+        <view class="rule-text">当输入的4位密码与答案完全相同，会显示 AAAA，拆弹成功，并显示本局共尝试了多少次。</view>
+      </view>
+
+      <view class="rule-block">
+        <view class="rule-title">5. 倒计时规则</view>
+        <view class="rule-text">每局拆弹时间为10分钟。每次提交合法但错误的密码，剩余时间减少1分钟；输入格式错误或数字重复不会扣时间。倒计时归零时拆弹失败。</view>
+      </view>
+
+      <view class="rule-block">
+        <view class="rule-title">6. 模式说明</view>
+        <view class="rule-text">开始挑战由系统随机生成答案。队友切磋由一人先设置密码，另一人进行破解。拆弹训练共有100关，每关给出一条线索，过关不计入战绩排行。</view>
+      </view>
+
+      <view class="rule-block">
+        <view class="rule-title">7. 退出与公布答案</view>
+        <view class="rule-text">猜测时可以退出当前局，也可以公布答案。普通模式公布答案会在战绩排行中记为“未猜出”；拆弹训练公布答案不计入战绩排行，并播放失败场景。</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{view === 'learnHome'}}" class="screen">
+    <view class="topbar">
+      <view>
+        <view class="kicker">训练场</view>
+        <view class="section-title">拆弹训练</view>
+      </view>
+      <button class="small-btn" bindtap="goHome">返回</button>
+    </view>
+
+    <view class="learning-panel">
+      <view class="progress-number">{{learningPassedCount}} / 100</view>
+      <view class="subtitle">已完成训练</view>
+      <view class="mind-map">
+        <view class="node n1">推理</view>
+        <view class="node n2">排除</view>
+        <view class="node n3">定位</view>
+      </view>
+    </view>
+
+    <view class="menu">
+      <button class="primary-btn" bindtap="startLearningChallenge">开始挑战</button>
+      <button class="secondary-btn" bindtap="openLearningJourney">闯关历程</button>
+    </view>
+  </view>
+
+  <view wx:elif="{{view === 'learnJourney'}}" class="screen">
+    <view class="topbar">
+      <view>
+        <view class="kicker">拆弹训练</view>
+        <view class="section-title">训练历程</view>
+      </view>
+      <button class="small-btn" bindtap="openLearning">返回</button>
+    </view>
+
+    <view wx:if="{{message}}" class="message">{{message}}</view>
+
+    <view class="level-grid">
+      <view wx:for="{{levelCards}}" wx:key="level" data-level="{{item.level}}" bindtap="replayLearningLevel" class="level-card {{item.statusClass}}">
+        <view class="level-no">{{item.level}}</view>
+        <view class="level-pattern">{{item.pattern}}</view>
+        <view class="level-state">{{item.stateText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{view === 'setup'}}" class="screen">
+    <view class="topbar">
+      <view>
+        <view class="kicker">队友切磋</view>
+        <view class="section-title">设置炸弹密码</view>
+      </view>
+      <button class="small-btn" bindtap="goHome">返回</button>
+    </view>
+
+    <view class="input-panel">
+      <input class="password-input" password type="number" maxlength="4" value="{{setupValue}}" bindinput="onSetupInput" placeholder="队友输入密码" />
+      <button class="primary-btn" bindtap="confirmSetup">装载密码</button>
+    </view>
+
+    <view wx:if="{{message}}" class="message">{{message}}</view>
+  </view>
+
+  <view wx:elif="{{view === 'play'}}" class="screen">
+    <view class="topbar">
+      <view>
+        <view class="kicker">{{modeLabel}}模式</view>
+        <view class="section-title">{{playTitle}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{isLearning}}" class="clue-card">
+      <view class="kicker">本关拆弹线索</view>
+      <view class="clue-line">
+        <text class="clue-number">{{clueNumber}}</text>
+        <text class="clue-result">{{clueResult}}</text>
+      </view>
+    </view>
+
+    <view class="bomb-rig">
+      <view class="coil-line"></view>
+      <view class="top-wire green-wire"></view>
+      <view class="top-wire yellow-wire"></view>
+      <view class="top-wire red-wire"></view>
+      <view class="dynamite tube-one"></view>
+      <view class="dynamite tube-two"></view>
+      <view class="strap strap-left"></view>
+      <view class="strap strap-right"></view>
+
+      <view class="control-board">
+        <view class="screw screw-one"></view>
+        <view class="screw screw-two"></view>
+        <view class="screw screw-three"></view>
+        <view class="screw screw-four"></view>
+
+        <view class="board-top">
+          <view class="component-cluster">
+            <view class="knob"></view>
+            <view class="led-dot"></view>
+          </view>
+          <view class="circuit-stack">
+            <view class="chip"></view>
+            <view class="resistor"></view>
+          </view>
+          <view class="timer-chip">{{bombTimeText}}</view>
+        </view>
+
+        <view class="screen-row">
+          <view class="password-screen">
+            <view class="digit-display">
+              <view wx:for="{{guessCells}}" wx:key="index" class="digit-cell {{item.active ? 'active-digit' : ''}}">{{item.value}}</view>
+            </view>
+            <input class="password-input crack-input" type="number" maxlength="4" value="{{guessValue}}" bindinput="onGuessInput" />
+          </view>
+          <view class="crack-button" bindtap="submitGuess">
+            <view class="red-button">确认</view>
+          </view>
+        </view>
+
+        <view class="wave-monitor">
+          <view class="wave-bar wave-bar-1"></view>
+          <view class="wave-bar wave-bar-2"></view>
+          <view class="wave-bar wave-bar-3"></view>
+          <view class="wave-bar wave-bar-4"></view>
+          <view class="wave-bar wave-bar-5"></view>
+          <view class="wave-bar wave-bar-6"></view>
+          <view class="wave-bar wave-bar-7"></view>
+          <view class="wave-bar wave-bar-8"></view>
+          <view class="wave-bar wave-bar-9"></view>
+          <view class="wave-bar wave-bar-10"></view>
+          <view class="wave-bar wave-bar-11"></view>
+          <view class="wave-bar wave-bar-12"></view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{message}}" class="score-card">{{message}}</view>
+
+    <view class="record-list">
+      <view class="record-head">
+        <text>尝试</text>
+        <text>反馈</text>
+      </view>
+      <view wx:for="{{records}}" wx:key="index" class="record-row">
+        <text>{{item.guess}}</text>
+        <text class="score-text">{{item.score}}</text>
+      </view>
+      <view wx:if="{{records.length === 0}}" class="empty">尚未输入破解密码</view>
+    </view>
+
+    <view class="bottom-actions">
+      <button class="ghost-btn" bindtap="exitGame">返回上级</button>
+      <button class="secondary-btn" bindtap="revealAnswer">引爆答案</button>
+    </view>
+  </view>
+
+  <view wx:elif="{{view === 'success'}}" class="screen result-screen">
+    <view class="result-mark">AAAA</view>
+    <view class="section-title">拆弹成功</view>
+    <view class="subtitle">共猜了 {{attempts}} 次</view>
+    <button class="primary-btn" bindtap="goHome">返回首页</button>
+  </view>
+
+  <view wx:elif="{{view === 'learnPassed'}}" class="screen result-screen">
+    <view wx:if="{{showUpgrade}}" class="upgrade-stage">
+      <view class="upgrade-arrow">↑</view>
+      <view class="upgrade-text">升级！</view>
+    </view>
+    <view class="result-mark">AAAA</view>
+    <view class="section-title">第 {{currentLevel}} 关拆除</view>
+    <view class="subtitle">共猜了 {{attempts}} 次</view>
+    <button class="primary-btn" bindtap="startLearningChallenge">继续训练</button>
+    <button class="ghost-btn" bindtap="openLearningJourney">训练历程</button>
+  </view>
+
+  <view wx:elif="{{view === 'revealed'}}" class="screen result-screen">
+    <view class="kicker">正确答案</view>
+    <view class="answer-text">{{revealedAnswer}}</view>
+    <view class="subtitle">{{revealNote}}</view>
+    <button class="primary-btn" bindtap="goHome">返回首页</button>
+  </view>
+
+  <view wx:elif="{{view === 'history'}}" class="screen">
+    <view class="topbar">
+      <view>
+        <view class="kicker">记录</view>
+        <view class="section-title">战绩排行</view>
+      </view>
+      <button class="small-btn" bindtap="goHome">返回</button>
+    </view>
+
+    <view class="history-table {{historySelectClass}}">
+      <view class="history-row table-head">
+        <text wx:if="{{selectingHistory}}">选择</text>
+        <text>日期</text>
+        <text>任务</text>
+        <text>尝试次数</text>
+      </view>
+      <view wx:for="{{history}}" wx:key="index" class="history-row" data-index="{{index}}" bindtap="toggleHistorySelection">
+        <block wx:if="{{selectingHistory}}">
+          <text wx:if="{{selectedHistory[index]}}" class="select-box selected">✓</text>
+          <text wx:else class="select-box"></text>
+        </block>
+        <text>{{item.date}}</text>
+        <text>{{item.mode}}</text>
+        <text>{{item.attempts}}</text>
+      </view>
+      <view wx:if="{{history.length === 0}}" class="empty table-empty">暂无战绩记录</view>
+    </view>
+
+    <view wx:if="{{message}}" class="message">{{message}}</view>
+
+    <view wx:if="{{!selectingHistory}}" class="history-actions">
+      <button class="ghost-btn" bindtap="openDeleteChoices">删除战绩</button>
+      <view wx:if="{{showDeleteChoices}}" class="delete-choices">
+        <button class="small-btn danger" bindtap="clearHistory">全部删除</button>
+        <button class="small-btn" bindtap="startSelectDelete">选择删除</button>
+      </view>
+    </view>
+
+    <view wx:if="{{selectingHistory}}" class="history-actions">
+      <button class="secondary-btn" bindtap="deleteSelectedHistory">删除选中</button>
+      <button class="ghost-btn" bindtap="cancelSelectDelete">取消</button>
+    </view>
+  </view>
+
+  <view wx:if="{{showSuccessBurst}}" class="success-overlay">
+    <view class="success-ring"></view>
+    <view class="confetti-piece confetti-one"></view>
+    <view class="confetti-piece confetti-two"></view>
+    <view class="confetti-piece confetti-three"></view>
+    <view class="confetti-piece confetti-four"></view>
+    <view class="confetti-piece confetti-five"></view>
+    <view class="confetti-piece confetti-six"></view>
+    <view class="confetti-ribbon ribbon-one"></view>
+    <view class="confetti-ribbon ribbon-two"></view>
+    <view class="confetti-ribbon ribbon-three"></view>
+    <view class="high-five-stage">
+      <view class="motion-line line-one"></view>
+      <view class="motion-line line-two"></view>
+      <view class="motion-line line-three"></view>
+      <view class="hand-wrap left-hand">
+        <view class="hand-palm">
+          <view class="finger finger-one"></view>
+          <view class="finger finger-two"></view>
+          <view class="finger finger-three"></view>
+          <view class="finger finger-four"></view>
+          <view class="thumb"></view>
+          <view class="palm-line palm-line-one"></view>
+          <view class="palm-line palm-line-two"></view>
+        </view>
+        <view class="sleeve red-sleeve"></view>
+      </view>
+      <view class="hand-wrap right-hand">
+        <view class="hand-palm">
+          <view class="finger finger-one"></view>
+          <view class="finger finger-two"></view>
+          <view class="finger finger-three"></view>
+          <view class="finger finger-four"></view>
+          <view class="thumb"></view>
+          <view class="palm-line palm-line-one"></view>
+          <view class="palm-line palm-line-two"></view>
+        </view>
+        <view class="sleeve blue-sleeve"></view>
+      </view>
+      <view class="clap-star clap-star-one"></view>
+      <view class="clap-star clap-star-two"></view>
+    </view>
+    <view class="success-code">AAAA</view>
+    <view class="success-copy">拆弹成功</view>
+  </view>
+
+  <view wx:if="{{showFailBurst}}" class="fail-overlay">
+    <view class="blast-halo"></view>
+    <view class="blast-star blast-star-back"></view>
+    <view class="blast-star blast-star-front"></view>
+    <view class="blast-cloud cloud-one"></view>
+    <view class="blast-cloud cloud-two"></view>
+    <view class="blast-cloud cloud-three"></view>
+    <view class="blast-cloud cloud-four"></view>
+    <view class="blast-core"></view>
+    <view class="spark spark-one"></view>
+    <view class="spark spark-two"></view>
+    <view class="spark spark-three"></view>
+    <view class="spark spark-four"></view>
+    <view class="fail-code">BOOM!</view>
+    <view class="fail-copy">拆弹失败</view>
+  </view>
+
+  <view wx:if="{{showMedalAward}}" class="medal-award-overlay">
+    <view class="award-rays"></view>
+    <view class="award-ribbon"></view>
+    <view class="award-medal"><view class="award-star"></view></view>
+    <view class="award-title">获得勋章</view>
+    <view class="award-name">{{activeMedal.name}}</view>
+  </view>
+</view>
